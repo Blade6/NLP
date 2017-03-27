@@ -2,6 +2,6 @@
 JDK版本：1.6.0_10
 程序编码为GBK。
 
-首先请把本程序解压，然后导入eclipse，然后运行window.java文件。
+首先请把本程序解压，然后导入eclipse，然后运行clickThis.java文件。
 
 本程序把中文汉字看做一个字符，maxLen不用乘以2！

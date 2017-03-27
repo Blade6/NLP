@@ -17,14 +17,14 @@ public class window {
 	private JTextField para;
 	private JButton button1;
 	private JButton button2;
-	private JButton button3;
 	private JTextArea outputArea;
 	private JPanel panel_h;
 	private JPanel panel_m;
 	private JPanel panel_l;
 	
-	private static fenci fenci_demo;
-	private static int MAXLEN = 3;
+	private fenci fenci_demo;
+	private CLAWS  claws_demo;
+	private int MAXLEN = 3;
 
 	public void init() throws FileNotFoundException {		
 		begin();
@@ -49,9 +49,8 @@ public class window {
 		inputArea.setLineWrap(true);
 		label = new JLabel("maxLen:");
 		para = new JTextField("3", 5);
-		button1 = new JButton("正向匹配");
-		button2 = new JButton("逆向匹配");
-		button3 = new JButton("双向匹配");
+		button1 = new JButton("中文分词");
+		button2 = new JButton("词性标注");
 		outputArea = new JTextArea(10, 40);
 		outputArea.setLineWrap(true);
 		
@@ -63,40 +62,44 @@ public class window {
 		panel_m.add(para);
 		panel_m.add(button1);
 		panel_m.add(button2);
-		panel_m.add(button3);
 		panel_l.add(outputArea);
 		
 		button1.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				action(false, true);
+				try {
+					action(false);
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		button2.addActionListener(new ActionListener() {			
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				action(false, false);
-			}
-		});
-		button3.addActionListener(new ActionListener() {			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				action(true, false);
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					action(true);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}				
 			}
 		});
 	}
 	
-	public void action(boolean twoWay, boolean flag){
+	public void action(boolean flag) throws FileNotFoundException{
 		MAXLEN = Integer.parseInt(para.getText());
 		
 		String s = inputArea.getText();
-		String result;
+		String result = null;
 		long startTime = System.currentTimeMillis();
 		
 		if(s.equals("")) result = "无输入";
 		else{
-			if(!twoWay) result = fenci_demo.MM(s, MAXLEN, flag);
-			else result = fenci_demo.twoWay(s, MAXLEN);
+			result = fenci_demo.twoWay(s, MAXLEN);
+			if(flag && !result.equals("该句子有歧义，无法分词！")){
+				claws_demo = new CLAWS();
+				result = result +"\n" + claws_demo.init(result);
+			}
 		}
 		long stopTime = System.currentTimeMillis();
 		String timeLog = "分词时间：" + (stopTime-startTime) + "ms";

@@ -1,14 +1,14 @@
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class fenci {
 
-	private static ArrayList<WordFre> words;
-	private static ArrayList<Word> candidates;
+	private HashMap<String, Double> words;
+	private ArrayList<Word> candidates;
 	
-	public static void main(String[] args) throws FileNotFoundException {
-		String s = "结合成分子时";
+	public void init(String s) throws FileNotFoundException {
 		readWordFre();
 		createCandidate(s);
 		build(s);
@@ -19,7 +19,7 @@ public class fenci {
 		print();
 	}
 	
-	public static void print(){
+	public void print(){
 		int c_index = candidates.size()-1;
 		//获取最后一个候选词的序号，这个序号就是尾词的序号，在所有尾词中，累积概率最大的尾词就是最终尾词
 		int tailIndex = candidates.get(c_index).index;
@@ -47,7 +47,7 @@ public class fenci {
 	/*
 	 * 构建概率最大分词表 
 	 */
-	public static void build(String s){
+	public void build(String s){
 		for(int i=0;i<candidates.size();i++){
 			if(candidates.get(i).index==0){
 				candidates.get(i).probability = Fre(candidates.get(i).content);
@@ -77,7 +77,7 @@ public class fenci {
 	/*
 	 * 生成候选词 
 	 */
-	public static void createCandidate(String s){
+	public void createCandidate(String s){
 		candidates = new ArrayList<Word>();
 		for(int i=0;i<s.length();i++){
 			for(int j=i+1;j<=s.length();j++){
@@ -94,41 +94,32 @@ public class fenci {
 	/*
 	 * 查找概率表中是否存在该词 
 	 */
-	public static boolean exist(String s){
-		for(int i=0;i<words.size();i++){
-			if(s.equals(words.get(i).word)) return true;
-		}
+	public boolean exist(String s){
+		if(words.containsKey(s)) return true;
 		return false;
 	}
 	
 	/*
 	 * 返回某个候选词的概率 
 	 */
-	public static double Fre(String s){
-		int i;
-		for(i=0;i<words.size();i++){
-			if(s.equals(words.get(i).word)) break;
-		}
-		return words.get(i).frequency;
+	public double Fre(String s){
+		return words.get(s);
 	}
 	
-	public static void readWordFre() throws FileNotFoundException{
-		words = new ArrayList<WordFre>();
+	public void readWordFre() throws FileNotFoundException{
+		words = new HashMap<String, Double>();
 		
 		java.io.File file = new java.io.File("wordFrequency.txt");
 		
 		Scanner input = new Scanner(file);	
 		
 		while(input.hasNext()){
-			WordFre word_input = new WordFre();
 			String word_init = input.next();
 			String word = word_init.substring(0, word_init.indexOf(','));
 			double frequency = Double.parseDouble(
 					word_init.substring(word_init.lastIndexOf(',')+1,
 							word_init.lastIndexOf('%')));
-			word_input.word = word;
-			word_input.frequency = frequency;
-			words.add(word_input);
+			words.put(word, frequency);
 		}
 		input.close();
 	}
