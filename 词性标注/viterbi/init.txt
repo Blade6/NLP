@@ -1,0 +1,6 @@
+AT 0.2
+BEZ 0.1
+IN 0.1
+NN 0.2
+VB 0.3
+PERIOD 0.1
