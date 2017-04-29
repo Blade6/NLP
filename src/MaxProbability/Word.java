@@ -1,3 +1,4 @@
+package MaxProbability;
 
 public class Word {
 	int index;//ÐòºÅ

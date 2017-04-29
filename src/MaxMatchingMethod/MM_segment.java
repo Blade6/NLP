@@ -1,15 +1,16 @@
+package MaxMatchingMethod;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
-public class fenci {
+public class MM_segment {
 	
 	private ArrayList<String> words;
 	
-	public fenci() throws FileNotFoundException{
+	public MM_segment() throws FileNotFoundException{
 		readData();
 	}
 	
-	public String twoWay(String s, int maxLen){
+	public String twoWay(String s, int maxLen){	
 		String s1 = MM(s, maxLen, true);
 		String s2 = MM(s, maxLen, false);
 		if(s1.equals(s2)) return s1;
@@ -20,6 +21,8 @@ public class fenci {
 	 * flag为真，正向匹配，否则逆向匹配
 	 */
 	public String MM(String s, int maxLen, boolean flag){
+		if (maxLen <= 0) return "MaxLen must larger than 0!";
+		
 		int Len = maxLen;
 		int begin = 0;
 		int end = s.length();
@@ -67,7 +70,7 @@ public class fenci {
 	public void readData() throws FileNotFoundException{
 		words = new ArrayList<String>();
 		
-		java.io.File file = new java.io.File("chineseDic.txt");
+		java.io.File file = new java.io.File("resources/chineseDic.txt");
 		
 		Scanner input = new Scanner(file);	
 		

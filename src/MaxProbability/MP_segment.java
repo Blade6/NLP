@@ -1,25 +1,31 @@
+package MaxProbability;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class fenci {
+public class MP_segment {
 
 	private HashMap<String, Double> words;
 	private ArrayList<Word> candidates;
 	
-	public void init(String s) throws FileNotFoundException {
+	public MP_segment() throws FileNotFoundException {
 		readWordFre();
-		createCandidate(s);
-		build(s);
-		for(int i=0;i<candidates.size();i++){
-			System.out.println(candidates.get(i).index+" "+candidates.get(i).content
-					+" "+candidates.get(i).probability+" "+candidates.get(i).best);
-		}
-		print();
 	}
 	
-	public void print(){
+	public String init(String s) {
+		createCandidate(s);
+		build(s);
+		//查看过程
+//		for(int i=0;i<candidates.size();i++){
+//			System.out.println(candidates.get(i).index+" "+candidates.get(i).content
+//					+" "+candidates.get(i).probability+" "+candidates.get(i).best);
+//		}
+		return getResult();
+	}
+	
+	public String getResult(){
 		int c_index = candidates.size()-1;
 		//获取最后一个候选词的序号，这个序号就是尾词的序号，在所有尾词中，累积概率最大的尾词就是最终尾词
 		int tailIndex = candidates.get(c_index).index;
@@ -41,7 +47,7 @@ public class fenci {
 			result = candidates.get(location).content + "/" + result;
 			if(candidates.get(location).index==0) break;
 		}
-		System.out.println(result);
+		return result;
 	}
 	
 	/*
@@ -109,7 +115,7 @@ public class fenci {
 	public void readWordFre() throws FileNotFoundException{
 		words = new HashMap<String, Double>();
 		
-		java.io.File file = new java.io.File("wordFrequency.txt");
+		java.io.File file = new java.io.File("resources/wordFrequency.txt");
 		
 		Scanner input = new Scanner(file);	
 		

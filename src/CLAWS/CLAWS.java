@@ -1,3 +1,5 @@
+package CLAWS;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +13,12 @@ public class CLAWS {
 	private ArrayList<String[]> Word;//记录每个分词及它的所有词性
 	private HashMap<String, Integer> cixing_times;//每种词性出现的次数
 	private HashMap<String, Integer> word_times;//每个分词出现的次数
+	private HashMap<String, Integer> cixing_sequence;//连续词性的出现次数
 	private ArrayList<String> Road;//记录各分词的词性相互组合的路径
 	
+	/*
+	 * 接受分词后的句子，注意分词符是斜杠
+	 */
 	public String init(String s) throws FileNotFoundException{
 		String[] str = s.split("/");
 		readDic();
@@ -68,8 +74,13 @@ public class CLAWS {
 			double pro = 1.0;
 			for(int j=0;j<roads.length-1;j++){
 				String s1 = str[j] + "/" + roads[j];
-				pro *= getProbability(s1, roads[j]);
+				pro *= getProbability_1(s1, roads[j]);
 			}
+			pro *= getProbability_2("<BOS>", roads[0]);
+			for(int k=1;k<roads.length-1;k++){
+				pro *= getProbability_2(roads[k-1], roads[k]);
+			}
+			pro *= getProbability_2(roads[roads.length-2], "<EOS>");
 			if(pro > max){
 				max = pro;
 				Result = road;
@@ -81,7 +92,7 @@ public class CLAWS {
 	/*
 	 * 返回形如"把/v"的概率 
 	 */
-	public double getProbability(String s, String cixing){
+	public double getProbability_1(String s, String cixing){
 		Double child = 0.0, parent = 1.0;
 		if(word_times.containsKey(s)){
 			child = (double) word_times.get(s);
@@ -95,10 +106,28 @@ public class CLAWS {
 	}
 	
 	/*
+	 * 返回形如"s|<BOS>"的概率 
+	 */
+	public double getProbability_2(String leftword, String rightword){
+		Double child = 0.0, parent = 1.0;
+		String str = leftword + "," + rightword;
+		
+		if(cixing_sequence.containsKey(str)){
+			child = (double) cixing_sequence.get(str);
+		}
+		
+		if(cixing_sequence.containsKey(leftword)){
+			parent = (double) cixing_sequence.get(leftword);
+		}
+		
+		return child / parent;
+	}
+	
+	/*
 	 * 读取文件 
 	 */
 	public void readFile() throws FileNotFoundException{
-		java.io.File file = new java.io.File("cixing_times.txt");
+		java.io.File file = new java.io.File("resources/cixing_times.txt");
 		Scanner input = new Scanner(file);
 		cixing_times = new HashMap<String, Integer>();
 		while(input.hasNext()){
@@ -108,13 +137,23 @@ public class CLAWS {
 		}
 		input.close();
 		
-		file = new java.io.File("word_times.txt");
+		file = new java.io.File("resources/word_times.txt");
 		input = new Scanner(file);
 		word_times = new HashMap<String, Integer>();
 		while(input.hasNext()){
 			String line = input.nextLine();
 			String[] words = line.split("\\s+");
 			word_times.put(words[0], Integer.parseInt(words[1]));
+		}
+		input.close();
+		
+		file = new java.io.File("resources/cixing_sequence_times.txt");
+		input = new Scanner(file);
+		cixing_sequence = new HashMap<String, Integer>();
+		while(input.hasNext()){
+			String line = input.nextLine();
+			String[] words = line.split("\\s+");
+			cixing_sequence.put(words[0], Integer.parseInt(words[1]));
 		}
 		input.close();
 	}
@@ -125,7 +164,7 @@ public class CLAWS {
 	public void readDic() throws FileNotFoundException{
 		dict = new ArrayList<String[]>();
 		
-		java.io.File file = new java.io.File("chineseDic.txt");
+		java.io.File file = new java.io.File("resources/chineseDic.txt");
 		Scanner input = new Scanner(file);
 		
 		while(input.hasNext()){
