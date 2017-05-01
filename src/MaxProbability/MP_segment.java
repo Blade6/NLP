@@ -1,17 +1,25 @@
 package MaxProbability;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Scanner;
 
 public class MP_segment {
 
-	private HashMap<String, Double> words;
+	private static MP_segment singleton;
+	private static HashMap<String, Double> words;
 	private ArrayList<Word> candidates;
 	
-	public MP_segment() throws FileNotFoundException {
+	private MP_segment() throws NumberFormatException, IOException {
 		readWordFre();
+	}
+	
+	public static MP_segment getInstance() throws NumberFormatException, IOException {
+		if (singleton == null)
+			singleton = new MP_segment();
+		return singleton;
 	}
 	
 	public String init(String s) {
@@ -63,7 +71,8 @@ public class MP_segment {
 				double maxPro = -1;
 				int index = 0;
 				//获取当前词第一个字在原字符串中的前一个字，当前词的左邻词必然是以那个字结尾的词
-				String leftLetter = s.substring(candidates.get(i).index-1, candidates.get(i).index);
+				String leftLetter = s.substring(
+						candidates.get(i).index-1, candidates.get(i).index);
 				for(int j=0;j<i;j++){
 					String Aword = candidates.get(j).content;
 					if(Aword.substring(Aword.length()-1, Aword.length()).equals(leftLetter)){
@@ -84,11 +93,11 @@ public class MP_segment {
 	 * 生成候选词 
 	 */
 	public void createCandidate(String s){
-		candidates = new ArrayList<Word>();
+		candidates = new ArrayList<>();
 		for(int i=0;i<s.length();i++){
 			for(int j=i+1;j<=s.length();j++){
 				String subStr = s.substring(i, j);
-				if(!exist(subStr)) continue; 
+				if(!words.containsKey(subStr)) continue; 
 				Word candidate = new Word();
 				candidate.index = i;
 				candidate.content = subStr;
@@ -98,29 +107,20 @@ public class MP_segment {
 	}
 	
 	/*
-	 * 查找概率表中是否存在该词 
-	 */
-	public boolean exist(String s){
-		if(words.containsKey(s)) return true;
-		return false;
-	}
-	
-	/*
 	 * 返回某个候选词的概率 
 	 */
 	public double Fre(String s){
 		return words.get(s);
 	}
 	
-	public void readWordFre() throws FileNotFoundException{
+	public void readWordFre() throws NumberFormatException, IOException{
 		words = new HashMap<String, Double>();
 		
-		java.io.File file = new java.io.File("resources/wordFrequency.txt");
+		BufferedReader input = new BufferedReader(
+				new FileReader("resources/MP_segment/wordFrequency.txt"));
+		String word_init = null;
 		
-		Scanner input = new Scanner(file);	
-		
-		while(input.hasNext()){
-			String word_init = input.next();
+		while((word_init = input.readLine()) != null){
 			String word = word_init.substring(0, word_init.indexOf(','));
 			double frequency = Double.parseDouble(
 					word_init.substring(word_init.lastIndexOf(',')+1,

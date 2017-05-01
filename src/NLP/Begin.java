@@ -1,10 +1,11 @@
+package NLP;
 import java.io.FileNotFoundException;
 
 
-public class clickThis {
+public class Begin {
 
 	public static void main(String[] args) {
-		window demo = new window();		
+		Layout demo = new Layout();		
 		try {
 			demo.init();
 		} catch (FileNotFoundException e) {

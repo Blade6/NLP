@@ -1,28 +1,50 @@
 package CLAWS;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Scanner;
 
-import javax.naming.spi.DirStateFactory.Result;
+/*
+ *   P(s,v,n|一，把，青菜）
+ * = P(一，把，青菜|s,v,n)*P(s,v,n)      贝叶斯，分母省略
+ * = P(一|s)*P(把|v)*P(青菜|n)*P(s|<BOS>)*P(v|s)*P(n|v)*P(n|<EOS>)   二元语法模型
+ * 
+ * P(v|s)=N(s,v)/N(s *)
+ * P(把|v)=N(把,v)/N(v) 
+ * 
+ */
 
 public class CLAWS {
 	
-	private ArrayList<String[]> dict;//词典，用于查找
+	private static CLAWS singleton;
+	private HashMap<String, String[]> dict;//词典，用于查找
+	private HashMap<String, Integer> cixing_times = new HashMap<String, Integer>();//每种词性出现的次数
+	private HashMap<String, Integer> word_times = new HashMap<String, Integer>();//每个分词出现的次数
+	private HashMap<String, Integer> cixing_sequence = new HashMap<String, Integer>();//连续词性的出现次数
+	
 	private ArrayList<String[]> Word;//记录每个分词及它的所有词性
-	private HashMap<String, Integer> cixing_times;//每种词性出现的次数
-	private HashMap<String, Integer> word_times;//每个分词出现的次数
-	private HashMap<String, Integer> cixing_sequence;//连续词性的出现次数
 	private ArrayList<String> Road;//记录各分词的词性相互组合的路径
+	
+	private CLAWS() throws IOException {
+		readDic();
+		readFile("resources/CLAWS/cixing_times.txt", cixing_times);
+		readFile("resources/CLAWS/word_times.txt", word_times);
+		readFile("resources/CLAWS/cixing_sequence_times.txt", cixing_sequence);
+	}
+	
+	public static CLAWS getInstance() throws IOException {
+		if (singleton == null)
+			singleton = new CLAWS();
+		return singleton;
+	}
 	
 	/*
 	 * 接受分词后的句子，注意分词符是斜杠
 	 */
-	public String init(String s) throws FileNotFoundException{
+	public String init(String s) throws IOException{
 		String[] str = s.split("/");
-		readDic();
-		readFile();
 		if(!first(str)) return "Error";
 		Road = new ArrayList<String>();
 		second(0, "");
@@ -126,34 +148,12 @@ public class CLAWS {
 	/*
 	 * 读取文件 
 	 */
-	public void readFile() throws FileNotFoundException{
-		java.io.File file = new java.io.File("resources/cixing_times.txt");
-		Scanner input = new Scanner(file);
-		cixing_times = new HashMap<String, Integer>();
-		while(input.hasNext()){
-			String line = input.nextLine();
+	public void readFile(String filename, HashMap<String, Integer> hashMap) throws NumberFormatException, IOException{
+		BufferedReader input = new BufferedReader(new FileReader(filename));
+		String line = null;
+		while((line = input.readLine()) != null){
 			String[] words = line.split("\\s+");
-			cixing_times.put(words[0], Integer.parseInt(words[1]));
-		}
-		input.close();
-		
-		file = new java.io.File("resources/word_times.txt");
-		input = new Scanner(file);
-		word_times = new HashMap<String, Integer>();
-		while(input.hasNext()){
-			String line = input.nextLine();
-			String[] words = line.split("\\s+");
-			word_times.put(words[0], Integer.parseInt(words[1]));
-		}
-		input.close();
-		
-		file = new java.io.File("resources/cixing_sequence_times.txt");
-		input = new Scanner(file);
-		cixing_sequence = new HashMap<String, Integer>();
-		while(input.hasNext()){
-			String line = input.nextLine();
-			String[] words = line.split("\\s+");
-			cixing_sequence.put(words[0], Integer.parseInt(words[1]));
+			hashMap.put(words[0], Integer.parseInt(words[1]));
 		}
 		input.close();
 	}
@@ -161,16 +161,15 @@ public class CLAWS {
 	/*
 	 * 读取字典文件
 	 */
-	public void readDic() throws FileNotFoundException{
-		dict = new ArrayList<String[]>();
+	public void readDic() throws IOException{
+		dict = new HashMap<>();
 		
-		java.io.File file = new java.io.File("resources/chineseDic.txt");
-		Scanner input = new Scanner(file);
+		BufferedReader input = new BufferedReader(new FileReader("resources/MM_segment/chineseDic.txt"));
+		String dict_init = null;
 		
-		while(input.hasNext()){
-			String dict_init = input.next();
+		while((dict_init = input.readLine()) != null){
 			String[] item = dict_init.split(",");
-			dict.add(item);
+			dict.put(item[0], item);
 		}
 		input.close();
 	}
@@ -179,9 +178,7 @@ public class CLAWS {
 	 * 返回某个词的词性数组 
 	 */
 	public String[] searchDict(String s){
-		for(int i=0;i<dict.size();i++){
-			if(s.equals(dict.get(i)[0])) return dict.get(i);
-		}
+		if (dict.containsKey(s)) return dict.get(s);
 		return new String[]{"Error",s};
 	}
 

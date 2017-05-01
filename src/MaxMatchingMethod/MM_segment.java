@@ -1,13 +1,24 @@
 package MaxMatchingMethod;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashSet;
+
 public class MM_segment {
 	
-	private ArrayList<String> words;
+	private static MM_segment singleton;
+	private static HashSet<String> words;
 	
-	public MM_segment() throws FileNotFoundException{
+	private MM_segment() throws IOException{
 		readData();
+	}
+	
+	// 单例模式，一次性读入文件，以后不用重复读入，加快运行速度
+	public static MM_segment getInstance() throws IOException {
+		if (singleton == null)
+			singleton = new MM_segment();
+		return singleton;
 	}
 	
 	public String twoWay(String s, int maxLen){	
@@ -67,19 +78,18 @@ public class MM_segment {
 		return false;
 	}
 	
-	public void readData() throws FileNotFoundException{
-		words = new ArrayList<String>();
+	public void readData() throws IOException{
+		words = new HashSet<>();
 		
-		java.io.File file = new java.io.File("resources/chineseDic.txt");
-		
-		Scanner input = new Scanner(file);	
-		
-		while(input.hasNext()){
-			String word_init = input.next();
+		String word_init = null;
+		BufferedReader input = new BufferedReader(new FileReader(
+				"resources/MM_segment/chineseDic.txt"));
+		while ((word_init = input.readLine()) != null) {
 			String word = word_init.substring(0, word_init.indexOf(","));
 			words.add(word);
 		}
 		input.close();
+		
 	}
 
 }
